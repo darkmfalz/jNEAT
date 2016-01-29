@@ -69,4 +69,11 @@ public class NeuronGene extends Gene {
 		
 	}
 	
+	//Miscellaneous
+	public NeuronGene clone(){
+		
+		return new NeuronGene(geneNum, id, type, tier, p, recurrent);
+		
+	}
+	
 }

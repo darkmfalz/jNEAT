@@ -2,7 +2,7 @@ package jNEAT;
 
 public class Gene {
 
-	private int geneNum;
+	protected int geneNum;
 	
 	public Gene(int geneNum){
 		
