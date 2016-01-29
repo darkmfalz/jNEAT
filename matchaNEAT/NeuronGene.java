@@ -2,21 +2,19 @@ package matchaNEAT;
 
 public class NeuronGene extends Gene {
 
-	public enum NeuronType {
+	public static enum NeuronType {
 		
 		INPUT, HIDDEN, BIAS, OUTPUT, NONE;
 		
 	}
 	
-	private int id; //Neuron ID
 	private NeuronType type; //This is the type of neuron
 	private double tier, p; //p in 1/(1 + e^(- a / p)), the logistic sigmoid activation function
 	private boolean recurrent; //Is this a recurrent neuron
 	
-	public NeuronGene(int geneNum, int id, NeuronType type, double tier, double p, boolean recurrent) {
+	public NeuronGene(int geneNum, NeuronType type, double tier, double p, boolean recurrent) {
 		
 		super(geneNum);
-		this.id = id;
 		this.type = type;
 		this.tier = tier;
 		this.p = p;
@@ -25,12 +23,6 @@ public class NeuronGene extends Gene {
 	}
 
 	//Getters
-	public int getID(){
-		
-		return id;
-		
-	}
-	
 	public NeuronType getType(){
 		
 		return type;
@@ -71,7 +63,7 @@ public class NeuronGene extends Gene {
 	//Cloners
 	public NeuronGene clone(){
 		
-		return new NeuronGene(geneNum, id, type, tier, p, recurrent);
+		return new NeuronGene(geneNum, type, tier, p, recurrent);
 		
 	}
 	
