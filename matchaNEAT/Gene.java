@@ -1,4 +1,4 @@
-package jNEAT;
+package matchaNEAT;
 
 public class Gene {
 
