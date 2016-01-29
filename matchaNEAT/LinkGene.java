@@ -53,13 +53,13 @@ public class LinkGene extends Gene {
 		
 	}
 	
-	public boolean getRecurretn(){
+	public boolean getRecurrent(){
 		
 		return recurrent;
 		
 	}
 
-	//Setters
+	//Setters	
 	public void setWeight(double weight){
 		
 		this.weight = weight;

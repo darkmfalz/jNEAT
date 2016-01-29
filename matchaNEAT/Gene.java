@@ -10,9 +10,17 @@ public class Gene {
 		
 	}
 	
+	//Getters
 	public int getGeneNum(){
 		
 		return geneNum;
+		
+	}
+	
+	//Setters
+	public void setGeneNum(int geneNum){
+		
+		this.geneNum = geneNum;
 		
 	}
 	
