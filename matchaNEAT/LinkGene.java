@@ -2,11 +2,9 @@ package matchaNEAT;
 
 public class LinkGene extends Gene {
 	
-	private int from;
-	private int to;
+	private int from, to;
 	private double weight;
-	private boolean enabled;
-	private boolean recurrent;
+	private boolean enabled, recurrent;
 
 	public LinkGene(int geneNum, int from, int to, double weight, boolean recurrent) {
 		
@@ -74,7 +72,7 @@ public class LinkGene extends Gene {
 		
 	}
 	
-	//Miscellaneous
+	//Cloners
 	public LinkGene clone(){
 		
 		return new LinkGene(geneNum, from, to, weight, enabled, recurrent);

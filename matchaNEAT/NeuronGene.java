@@ -10,8 +10,7 @@ public class NeuronGene extends Gene {
 	
 	private int id; //Neuron ID
 	private NeuronType type; //This is the type of neuron
-	private double tier;
-	private double p; //p in 1/(1 + e^(- a / p)), the logistic sigmoid activation function
+	private double tier, p; //p in 1/(1 + e^(- a / p)), the logistic sigmoid activation function
 	private boolean recurrent; //Is this a recurrent neuron
 	
 	public NeuronGene(int geneNum, int id, NeuronType type, double tier, double p, boolean recurrent) {
@@ -69,7 +68,7 @@ public class NeuronGene extends Gene {
 		
 	}
 	
-	//Miscellaneous
+	//Cloners
 	public NeuronGene clone(){
 		
 		return new NeuronGene(geneNum, id, type, tier, p, recurrent);
