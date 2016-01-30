@@ -1,7 +1,9 @@
 package matchaNEAT;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 public class Genome {
@@ -103,21 +105,56 @@ public class Genome {
 	}
 
 	//Mutators
-	public void addLink(double mutationRate, double chanceRecurrent, ArrayList<LinkGene> linkGeneList, int numLoopFind, int numLinkAdd){
+	public void addLink(double mutationRate, double chanceRecurrent, HashMap<Integer, LinkGene> linkGeneList, int numTriesLoopFind, int numTriesLinkAdd){
+	
+		Random random = new Random();
+		
+		double willMutate = random.nextDouble();
+		if(willMutate < mutationRate)
+			addLink(chanceRecurrent, linkGeneList, numTriesLoopFind, numTriesLinkAdd);
+	
+	}
+	
+	public void addLink(double chanceRecurrent, HashMap<Integer, LinkGene> linkGeneList, int numTriesLoopFind, int numTriesLinkAdd){
 		
 		Random random = new Random();
 		
 		NeuronGene[] neuronsArr = neurons.values().toArray(new NeuronGene[0]);
 		
-		for(int i = 0; i < numLoopFind; i++){
+		boolean isRecurrent = (random.nextDouble() < chanceRecurrent);
+		int numTries = numTriesLinkAdd;
+		if(isRecurrent)
+			numTries = numTriesLoopFind;
+		
+		for(int i = 0; i < numTries; i++){
 		
 			//Randomly select neurons
 			NeuronGene neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
 			NeuronGene neuronGene2;
 			
+			//If this is a recurrent edge and the type of the neuron is not bias or an input
+			while(isRecurrent && i < numTries && (neuronGene1.getRecurrent() || neuronGene1.getType() == NeuronGene.NeuronType.BIAS || neuronGene1.getType() == NeuronGene.NeuronType.INPUT)){
+				
+				neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
+				i++;
+				
+			}
+			//If we've exceeded the number of tries, break
+			if(i >= numTries - 1)
+				break;
+				
 			//Determine whether or not this link will be recurrent
-			double isRecurrent = random.nextDouble();
-			if(isRecurrent < chanceRecurrent){
+			if(isRecurrent){
+				
+				while(i < numTries && (neuronGene1.getRecurrent() || neuronGene1.getType() == NeuronGene.NeuronType.BIAS || neuronGene1.getType() == NeuronGene.NeuronType.INPUT)){
+					
+					neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
+					i++;
+					
+				}
+				//If we've exceeded the number of tries, break
+				if(i >= numTries - 1)
+					break;
 				
 				neuronGene2 = neuronGene1;
 				neuronGene1.setRecurrent(true);
@@ -128,19 +165,26 @@ public class Genome {
 
 				neuronGene2 = neuronsArr[random.nextInt(neuronsArr.length)];
 				
-				while(neuronGene2.equals(neuronGene1))
+				while(i < numTries && (neuronGene2.equals(neuronGene1) || neuronGene2.getType() == NeuronGene.NeuronType.INPUT || neuronGene2.getType() == NeuronGene.NeuronType.BIAS)){
+					
 					neuronGene2 = neuronsArr[random.nextInt(neuronsArr.length)];
+					i++;
+				
+				}
+				//If we've exceeded the number of tries, break
+				if(i >= numTries - 1)
+					break;
 				
 			}
 			
 			//If NeuronGene1 has a higher tier than NeuronGene2, then swap them
-			if(neuronGene1.getTier() > neuronGene2.getTier() && !neuronGene1.equals(neuronGene2)){
+			/*if(neuronGene1.getTier() > neuronGene2.getTier() && !neuronGene1.equals(neuronGene2)){
 				
 				NeuronGene temp = neuronGene1;
 				neuronGene1 = neuronGene2;
 				neuronGene2 = temp;
 				
-			}
+			}*/
 			
 			LinkGene linkGene = new LinkGene(linkGeneList.size(), neuronGene1.getGeneNum(), neuronGene2.getGeneNum(), 1.0, neuronGene1.equals(neuronGene2));
 			//Find whether the link already exists
@@ -154,35 +198,68 @@ public class Genome {
 				}
 			
 			//If the generated linkGene already exists
-			if(linkExists){
-				
-				LinkGene[] linksArr = links.values().toArray(new LinkGene[0]);
-				//linkExists now corresponds to whether the link is in the genome
-				linkExists = false;
-				for(int j = 0; j < linksArr.length; j++)
-					if(linksArr[j].getFrom() == neuronGene1.getGeneNum() && linksArr[j].getTo() == neuronGene2.getGeneNum())
-						linkExists = true;
-				
-				//if the link isn't in the genome
-				if(!linkExists){
+			if(linkExists && !isDuplicateLink(linkGene.getFrom(), linkGene.getTo())){
 					
-					links.put(linkGene.getGeneNum(), linkGene);
-					break;
-					
-				}
-				//else just continue searching
-				
+				linkGene.setWeight(random.nextDouble()*2.0 - 1.0);
+				links.put(linkGene.getGeneNum(), linkGene);
+				break;
+			
 			}
 			//otherwise, add the link to the links genome and the linkGeneList
-			else{
+			else if(!linkExists){
 				
+				linkGene.setGeneNum(linkGeneList.size());
+				linkGeneList.put(linkGeneList.size(), linkGene);
+				linkGene = linkGene.clone();
+				linkGene.setWeight(random.nextDouble()*2.0 - 1.0);
 				links.put(linkGene.getGeneNum(), linkGene);
-				linkGeneList.add(linkGene);
 				break;
 				
 			}
 			
 		}
+		
+	}
+	
+	public boolean isDuplicateLink(int id1, int id2){
+		
+		LinkGene[] linksArr = links.values().toArray(new LinkGene[0]);
+		boolean linkExists = false;
+		for(int j = 0; j < linksArr.length; j++)
+			if(linksArr[j].getFrom() == id1 && linksArr[j].getTo() == id2)
+				linkExists = true;
+		
+		return linkExists;
+		
+	}
+	
+	public void addNeuron(double mutationRate, HashMap<Integer, NeuronGene> neuronGeneList, int numTriesOldLoopFind){
+		
+		Random random = new Random();
+		
+		double willMutate = random.nextDouble();
+		if(willMutate < mutationRate)
+			addNeuron(neuronGeneList, numTriesOldLoopFind);
+	
+		
+	}
+	
+	public void addNeuron(HashMap<Integer, NeuronGene> neuronGeneList, int numTriesOldLoopFind){
+		
+		Random random = new Random();
+		
+	}
+	
+	
+	public void mutateWeights(double mutationRate, double probNewMutation, double maxPerturbation){
+		
+		
+		
+	}
+	
+	public void mutateP(double mutationRate, double maxPerturbation){
+		
+		
 		
 	}
 	
@@ -214,6 +291,51 @@ public class Genome {
 			clone.put(keys[i], links.get(keys[i]).clone());
 		
 		return clone;
+		
+	}
+	
+	//Miscellaneous
+	public static double getDistance(Genome gen1, Genome gen2){
+		
+		
+		
+	}
+	
+	public static PriorityQueue<Genome> sortGenesFitness(HashMap<Integer, Genome> genomes){
+		
+		Comparator<Genome> fitnessComparator = new Comparator<Genome>(){
+			@Override
+			public int compare(Genome o1, Genome o2){
+				return -1*Double.compare(o1.getFitness(), o2.getFitness());
+				}
+			};
+			
+		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(fitnessComparator);
+		
+		Genome[] values = genomes.values().toArray(new Genome[0]);
+		for(int i = 0; i < values.length; i++)
+			queue.add(values[i]);
+		
+		return queue;
+		
+	}
+	
+	public static PriorityQueue<Genome> sortGenesSharedFitness(HashMap<Integer, Genome> genomes){
+		
+		Comparator<Genome> sharedFitnessComparator = new Comparator<Genome>(){
+			@Override
+			public int compare(Genome o1, Genome o2){
+				return -1*Double.compare(o1.getSharedFitness(), o2.getSharedFitness());
+				}
+			};
+			
+		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(sharedFitnessComparator);
+		
+		Genome[] values = genomes.values().toArray(new Genome[0]);
+		for(int i = 0; i < values.length; i++)
+			queue.add(values[i]);
+		
+		return queue;
 		
 	}
 	
