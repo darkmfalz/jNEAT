@@ -244,6 +244,7 @@ public class Genome {
 			return;
 		
 		chosenLink.setEnabled(false);
+		links.put(chosenLink.getGeneNum(), chosenLink);
 		
 		double ogWeight = chosenLink.getWeight();
 		NeuronGene from = neurons.get(chosenLink.getFrom());
@@ -256,7 +257,7 @@ public class Genome {
 			
 			int neuronID = ((NeuronGene) innovations.get(id)).getID();
 			
-			if(isDuplicateNeuron(id))
+			if(isDuplicateNeuron(neuronID))
 				id = -1;
 			
 		}
@@ -317,12 +318,12 @@ public class Genome {
 	
 	public static int getNextNeuronID(ArrayList<Gene> innovations){
 		
-		int id = 0;
+		int id = -1;
 		for(int i = 0; i < innovations.size(); i++)
 			if(!innovations.get(i).getIsLink())
 				id = Math.max(id, ((NeuronGene) innovations.get(i)).getID());
 		
-		return id;
+		return id + 1;
 		
 	}
 	

@@ -9,9 +9,9 @@ public class Test {
 		
 		
 		NeuronGene neuronGene0 = new NeuronGene(0, -1, -1, 0, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
-		NeuronGene neuronGene1 = new NeuronGene(1, -1, -1, 1, NeuronGene.NeuronType.NONE, 1.0, 1.0, false);
-		NeuronGene neuronGene2 = new NeuronGene(2, -1, -1, 2, NeuronGene.NeuronType.NONE, 2.0, 1.0, false);
-		NeuronGene neuronGene3 = new NeuronGene(3, -1, -1, 3, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
+		NeuronGene neuronGene1 = new NeuronGene(1, -1, -1, 1, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
+		NeuronGene neuronGene2 = new NeuronGene(2, -1, -1, 2, NeuronGene.NeuronType.OUTPUT, 1.0, 1.0, false);
+		NeuronGene neuronGene3 = new NeuronGene(3, -1, -1, 3, NeuronGene.NeuronType.OUTPUT, 1.0, 1.0, false);
 		
 		HashMap<Integer, NeuronGene> neurons = new HashMap<Integer, NeuronGene>();
 		HashMap<Integer, LinkGene> links = new HashMap<Integer, LinkGene>();
@@ -27,13 +27,30 @@ public class Test {
 		innovations.add(neuronGene2);
 		innovations.add(neuronGene3);
 		
-		Genome genome = new Genome(0, neurons, links, 1, 1);
-		for(int i = 0; i < 40; i++)
+		Genome genome = new Genome(0, neurons, links, 2, 2);
+		Genome genome2 = genome.clone();
+		for(int i = 0; i < 50; i++)
 			genome.addLink(1.0, 0.5, innovations, 10, 10);
+		for(int i = 0; i < 10; i++)
+			genome.addNeuron(1.0, innovations, 10);
+		
+		//for(int i = 0; i < 40; i++)
+		//	genome2.addLink(1.0, 0.5, innovations, 10, 10);
+		//for(int i = 0; i < 10; i++)
+		//	genome2.addNeuron(1.0, innovations, 10);
+		
+		//for(int i = 0; i < 10; i++)
+		//	genome.addLink(1.0, 0.5, innovations, 10, 10);
+		//for(int i = 0; i < 10; i++)
+		//	genome.addNeuron(1.0, innovations, 10);
 		
 		LinkGene[] blah = genome.getLinks().values().toArray(new LinkGene[0]);
 		for(int i = 0; i < blah.length; i++)
 			System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
+		
+		NeuronGene[] blah2 = genome.getNeurons().values().toArray(new NeuronGene[0]);
+		for(int i = 0; i < blah2.length; i++)
+			System.out.println(blah2[i].getID() + ": " + blah2[i].getFrom() + " to " + blah2[i].getTo() + " @ " + blah2[i].getTier());
 		
 	}
 	
