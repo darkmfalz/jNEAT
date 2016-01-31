@@ -2,15 +2,12 @@ package matchaNEAT;
 
 public class LinkGene extends Gene {
 	
-	private int from, to;
 	private double weight;
 	private boolean enabled, recurrent;
 
 	public LinkGene(int geneNum, int from, int to, double weight, boolean recurrent) {
 		
-		super(geneNum);
-		this.from = from;
-		this.to = to;
+		super(geneNum, from, to, true);
 		this.weight = weight;
 		this.enabled = true;
 		this.recurrent = recurrent;
@@ -19,7 +16,7 @@ public class LinkGene extends Gene {
 	
 	public LinkGene(int geneNum, int from, int to, double weight, boolean enabled, boolean recurrent) {
 		
-		super(geneNum);
+		super(geneNum, from, to, true);
 		this.from = from;
 		this.to = to;
 		this.weight = weight;
@@ -29,18 +26,6 @@ public class LinkGene extends Gene {
 	}
 	
 	//Getters
-	public int getFrom(){
-		
-		return from;
-		
-	}
-	
-	public int getTo(){
-		
-		return to;
-		
-	}
-	
 	public double getWeight(){
 		
 		return weight;

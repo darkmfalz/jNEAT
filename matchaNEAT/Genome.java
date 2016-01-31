@@ -105,117 +105,78 @@ public class Genome {
 	}
 
 	//Mutators
-	public void addLink(double mutationRate, double chanceRecurrent, HashMap<Integer, LinkGene> linkGeneList, int numTriesLoopFind, int numTriesLinkAdd){
-	
-		Random random = new Random();
-		
-		double willMutate = random.nextDouble();
-		if(willMutate < mutationRate)
-			addLink(chanceRecurrent, linkGeneList, numTriesLoopFind, numTriesLinkAdd);
-	
-	}
-	
-	public void addLink(double chanceRecurrent, HashMap<Integer, LinkGene> linkGeneList, int numTriesLoopFind, int numTriesLinkAdd){
+	public void addLink(double mutationRate, double chanceOfLooped, ArrayList<Gene> innovations, int numTriesToFindLoop, int numTriesToAddLink){
 		
 		Random random = new Random();
+		
+		if(random.nextDouble() > mutationRate)
+			return;
 		
 		NeuronGene[] neuronsArr = neurons.values().toArray(new NeuronGene[0]);
 		
-		boolean isRecurrent = (random.nextDouble() < chanceRecurrent);
-		int numTries = numTriesLinkAdd;
-		if(isRecurrent)
-			numTries = numTriesLoopFind;
+		NeuronGene neuron1 = null;
+		NeuronGene neuron2 = null;
 		
-		for(int i = 0; i < numTries; i++){
+		boolean recurrent = false;
 		
-			//Randomly select neurons
-			NeuronGene neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
-			NeuronGene neuronGene2;
+		if(random.nextDouble() < chanceOfLooped){
 			
-			//If this is a recurrent edge and the type of the neuron is not bias or an input
-			while(isRecurrent && i < numTries && (neuronGene1.getRecurrent() || neuronGene1.getType() == NeuronGene.NeuronType.BIAS || neuronGene1.getType() == NeuronGene.NeuronType.INPUT)){
+			for(int i = 0; i < numTriesToFindLoop; i++){
 				
-				neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
-				i++;
+				NeuronGene temp = neuronsArr[random.nextInt(neuronsArr.length)];
 				
-			}
-			//If we've exceeded the number of tries, break
-			if(i >= numTries - 1)
-				break;
-				
-			//Determine whether or not this link will be recurrent
-			if(isRecurrent){
-				
-				while(i < numTries && (neuronGene1.getRecurrent() || neuronGene1.getType() == NeuronGene.NeuronType.BIAS || neuronGene1.getType() == NeuronGene.NeuronType.INPUT)){
+				if(!temp.getRecurrent() && temp.getType() != NeuronGene.NeuronType.BIAS && temp.getType() != NeuronGene.NeuronType.INPUT){
 					
-					neuronGene1 = neuronsArr[random.nextInt(neuronsArr.length)];
-					i++;
-					
-				}
-				//If we've exceeded the number of tries, break
-				if(i >= numTries - 1)
+					neuron1 = temp;
+					neuron2 = neuron1;
+					neuron1.setRecurrent(true);
+					recurrent = true;
 					break;
-				
-				neuronGene2 = neuronGene1;
-				neuronGene1.setRecurrent(true);
-			
-			}
-			//if not, select another neuron
-			else{
-
-				neuronGene2 = neuronsArr[random.nextInt(neuronsArr.length)];
-				
-				while(i < numTries && (neuronGene2.equals(neuronGene1) || neuronGene2.getType() == NeuronGene.NeuronType.INPUT || neuronGene2.getType() == NeuronGene.NeuronType.BIAS)){
 					
-					neuronGene2 = neuronsArr[random.nextInt(neuronsArr.length)];
-					i++;
-				
 				}
-				//If we've exceeded the number of tries, break
-				if(i >= numTries - 1)
+				
+			}
+			
+		}
+		else{
+			
+			for(int i = 0; i < numTriesToAddLink; i++){
+				
+				neuron1 = neuronsArr[random.nextInt(neuronsArr.length)];
+				neuron2 = neuronsArr[random.nextInt(neuronsArr.length)];
+				
+				if(!(isDuplicateLink(neuron1.getID(), neuron2.getID()) || neuron1.getID() == neuron2.getID()))
 					break;
-				
-			}
-			
-			//If NeuronGene1 has a higher tier than NeuronGene2, then swap them
-			/*if(neuronGene1.getTier() > neuronGene2.getTier() && !neuronGene1.equals(neuronGene2)){
-				
-				NeuronGene temp = neuronGene1;
-				neuronGene1 = neuronGene2;
-				neuronGene2 = temp;
-				
-			}*/
-			
-			LinkGene linkGene = new LinkGene(linkGeneList.size(), neuronGene1.getGeneNum(), neuronGene2.getGeneNum(), 1.0, neuronGene1.equals(neuronGene2));
-			//Find whether the link already exists
-			boolean linkExists = false;
-			for(int j = 0; j < linkGeneList.size(); j++)
-				if(linkGeneList.get(j).getFrom() == neuronGene1.getGeneNum() && linkGeneList.get(j).getTo() == neuronGene2.getGeneNum()){
+				else{
 					
-					linkExists = true;
-					linkGene.setGeneNum(linkGeneList.get(j).getGeneNum());
+					neuron1 = null;
+					neuron2 = null;
 					
 				}
-			
-			//If the generated linkGene already exists
-			if(linkExists && !isDuplicateLink(linkGene.getFrom(), linkGene.getTo())){
-					
-				linkGene.setWeight(random.nextDouble()*2.0 - 1.0);
-				links.put(linkGene.getGeneNum(), linkGene);
-				break;
-			
-			}
-			//otherwise, add the link to the links genome and the linkGeneList
-			else if(!linkExists){
-				
-				linkGene.setGeneNum(linkGeneList.size());
-				linkGeneList.put(linkGeneList.size(), linkGene);
-				linkGene = linkGene.clone();
-				linkGene.setWeight(random.nextDouble()*2.0 - 1.0);
-				links.put(linkGene.getGeneNum(), linkGene);
-				break;
 				
 			}
+			
+		}
+		
+		if(neuron1 == null || neuron2 == null)
+			return;
+		
+		int id = checkInnovation(innovations, neuron1.getID(), neuron2.getID(), true);
+		
+		if(neuron1.getTier() > neuron2.getTier())
+			recurrent = true;
+		
+		if(id < 0){
+			
+			LinkGene newLink = new LinkGene(innovations.size(), neuron1.getID(), neuron2.getID(), random.nextDouble()*2.0 - 1.0, recurrent);
+			links.put(newLink.getGeneNum(), newLink);
+			innovations.add(newLink);
+			
+		}
+		else{
+			
+			LinkGene newLink = new LinkGene(id, neuron1.getID(), neuron2.getID(), random.nextDouble()*2.0 - 1.0, recurrent);
+			links.put(newLink.getGeneNum(), newLink);
 			
 		}
 		
@@ -233,23 +194,147 @@ public class Genome {
 		
 	}
 	
-	public void addNeuron(double mutationRate, HashMap<Integer, NeuronGene> neuronGeneList, int numTriesOldLoopFind){
+	public void addNeuron(double mutationRate, ArrayList<Gene> innovations, int numTriesToFindOldLink){
 		
 		Random random = new Random();
 		
-		double willMutate = random.nextDouble();
-		if(willMutate < mutationRate)
-			addNeuron(neuronGeneList, numTriesOldLoopFind);
-	
+		if(random.nextDouble() > mutationRate)
+			return;
+		
+		LinkGene[] linksArr = links.values().toArray(new LinkGene[0]);
+		boolean done = false;
+		LinkGene chosenLink = null;
+		int sizeThreshold = numInputs + numOutputs + 5;
+		
+		if(links.size() < sizeThreshold){
+			
+			for(int i = 0; i < numTriesToFindOldLink; i++){
+				
+				chosenLink = linksArr[random.nextInt(links.size() - (int)Math.sqrt((double) links.size()))];
+				NeuronGene fromNeuron = neurons.get(chosenLink.getFrom());
+				
+				if(chosenLink.getEnabled() && !chosenLink.getRecurrent() && fromNeuron.getType() != NeuronGene.NeuronType.BIAS){
+					
+					done = true;
+					break;
+					
+				}
+				
+			}
+			
+			if(!done)
+				return;
+			
+		}
+		else{
+			
+			while(!done){
+				
+				chosenLink = linksArr[random.nextInt(links.size())];
+				NeuronGene fromNeuron = neurons.get(chosenLink.getFrom());
+				
+				if(chosenLink.getEnabled() && !chosenLink.getRecurrent() && fromNeuron.getType() != NeuronGene.NeuronType.BIAS)
+					done = true;
+				
+			}
+			
+		}
+		
+		if(chosenLink == null)
+			return;
+		
+		chosenLink.setEnabled(false);
+		
+		double ogWeight = chosenLink.getWeight();
+		NeuronGene from = neurons.get(chosenLink.getFrom());
+		NeuronGene to = neurons.get(chosenLink.getTo());
+		
+		double newTier = Math.min(from.getTier(), to.getTier()) + Math.abs(from.getTier() - to.getTier())/2.0;
+		int id = checkInnovation(innovations, from.getID(), to.getID(), false);
+		
+		if(id >= 0){
+			
+			int neuronID = ((NeuronGene) innovations.get(id)).getID();
+			
+			if(isDuplicateNeuron(id))
+				id = -1;
+			
+		}
+		
+		if(id < 0){
+			
+			int newNeuronGeneNum = innovations.size();
+			int newNeuronID = getNextNeuronID(innovations);
+			NeuronGene newNeuron = new NeuronGene(newNeuronGeneNum, from.getID(), to.getID(), newNeuronID, NeuronGene.NeuronType.HIDDEN, newTier, 1.0, false);
+			neurons.put(newNeuronID, newNeuron);
+			innovations.add(newNeuron);
+			
+			int geneNumLink1 = innovations.size();
+			LinkGene newLink1 = new LinkGene(geneNumLink1, from.getID(), newNeuronID, 1.0, false);
+			links.put(geneNumLink1, newLink1);
+			innovations.add(newLink1);
+			
+			int geneNumLink2 = innovations.size();
+			LinkGene newLink2 = new LinkGene(geneNumLink2, newNeuronID, to.getID(), ogWeight, false);
+			links.put(geneNumLink2, newLink2);
+			innovations.add(newLink2);
+			
+		}
+		else{
+			
+			int newNeuronID = ((NeuronGene) innovations.get(id)).getID();
+			int geneNumLink1 = checkInnovation(innovations, from.getID(), newNeuronID, true);
+			int geneNumLink2 = checkInnovation(innovations, newNeuronID, to.getID(), true);
+			
+			if(geneNumLink1 < 0 || geneNumLink2 < 0){
+				
+				System.out.println("ERROR, Null Edges in Neuron Creation");
+				return;
+				
+			}
+			
+			LinkGene link1 = new LinkGene(geneNumLink1, from.getID(), newNeuronID, 1.0, false);
+			LinkGene link2 = new LinkGene(geneNumLink2, newNeuronID, to.getID(), ogWeight, false);
+			
+			links.put(geneNumLink1, link1);
+			links.put(geneNumLink2, link2);
+			
+			NeuronGene newNeuron = new NeuronGene(id, from.getID(), to.getID(), newNeuronID, NeuronGene.NeuronType.HIDDEN, newTier, 1.0, false);
+			neurons.put(newNeuron.getID(), newNeuron);
+			
+		}
 		
 	}
 	
-	public void addNeuron(HashMap<Integer, NeuronGene> neuronGeneList, int numTriesOldLoopFind){
+	public boolean isDuplicateNeuron(int id){
 		
-		Random random = new Random();
+		if(neurons.containsKey(id))
+			return true;
+		
+		return false;
 		
 	}
 	
+	public static int getNextNeuronID(ArrayList<Gene> innovations){
+		
+		int id = 0;
+		for(int i = 0; i < innovations.size(); i++)
+			if(!innovations.get(i).getIsLink())
+				id = Math.max(id, ((NeuronGene) innovations.get(i)).getID());
+		
+		return id;
+		
+	}
+	
+	public static int checkInnovation(ArrayList<Gene> innovations, int neuron1, int neuron2, boolean isLink){
+		
+		for(int i = 0; i < innovations.size(); i++)
+			if(isLink == innovations.get(i).getIsLink() && neuron1 == innovations.get(i).getFrom() && neuron2 == innovations.get(i).getTo())
+				return i;
+		
+		return -1;
+		
+	}
 	
 	public void mutateWeights(double mutationRate, double probNewMutation, double maxPerturbation){
 		
