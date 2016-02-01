@@ -78,6 +78,18 @@ public class Genome {
 		
 	}
 	
+	public int getNumInputs(){
+		
+		return numInputs;
+		
+	}
+	
+	public int getNumOutputs(){
+		
+		return numOutputs;
+		
+	}
+	
 	//Setters
 	public void setFitness(double fitness){
 		
@@ -384,6 +396,132 @@ public class Genome {
 	public static double getDistance(Genome gen1, Genome gen2){
 		
 		
+		
+	}
+	
+	public static Genome breedChild(Genome mom, Genome dad, int id){
+		
+		Random random = new Random();
+		Genome bestParent;
+		Genome worstParent;
+		
+		if(mom.getFitness() == dad.getFitness()){
+			
+			if(mom.getLinks().size()  == dad.getLinks().size())	
+				if(random.nextDouble() >= 0.5){
+					
+					bestParent = mom;
+					worstParent = dad;
+					
+				}
+				else{
+					
+					bestParent = dad;
+					worstParent = mom;
+					
+				}
+			else{
+				
+				if(mom.getLinks().size() < dad.getLinks().size()){
+					
+					bestParent = mom;
+					worstParent = dad;
+					
+				}
+				else{
+					
+					bestParent = dad;
+					worstParent = mom;
+					
+				}
+				
+			}
+			
+		}
+		else{
+			
+			if(mom.getFitness() > dad.getFitness()){
+				
+				bestParent = mom;
+				worstParent = dad;
+				
+			}
+			else{
+				
+				bestParent = dad;
+				worstParent = mom;
+				
+			}
+			
+		}
+		
+		HashMap<Integer, NeuronGene> babyNeurons = new HashMap<Integer, NeuronGene>();
+		HashMap<Integer, LinkGene> babyLinks = new HashMap<Integer, LinkGene>();
+		
+		LinkGene[] bestLinks = bestParent.getLinks().values().toArray(new LinkGene[0]);
+		LinkGene[] worstLinks = worstParent.getLinks().values().toArray(new LinkGene[0]);
+		
+		LinkGene selectedGene = null;
+		
+		int i = 0;
+		int j = 0;
+		
+		while(i < bestLinks.length || j < worstLinks.length){
+			
+			if(i == bestLinks.length && j < worstLinks.length)
+				j++;
+			else if(i < bestLinks.length && j == worstLinks.length){
+				
+				selectedGene = bestLinks[i];
+				i++;
+				
+			}
+			else if(bestLinks[i].getGeneNum() < worstLinks[j].getGeneNum()){
+				
+				selectedGene = bestLinks[i];
+				i++;
+				
+			}
+			else if(bestLinks[i].getGeneNum() > worstLinks[j].getGeneNum())
+				j++;
+			else if(bestLinks[i].getGeneNum() == worstLinks[j].getGeneNum()){
+				
+				if(random.nextDouble() <= 0.5)
+					selectedGene = bestLinks[i];
+				else
+					selectedGene = worstLinks[j];
+				
+				i++;
+				j++;
+				
+			}
+			
+			if(babyLinks.size() == 0)
+				babyLinks.put(selectedGene.getGeneNum(), selectedGene);
+			else
+				if(!babyLinks.containsKey(selectedGene.getGeneNum()))
+					babyLinks.put(selectedGene.getGeneNum(), selectedGene);
+			
+			if(!babyNeurons.containsKey(selectedGene.getFrom())){
+				
+				if(bestParent.getNeurons().containsKey(selectedGene.getFrom()))
+					babyNeurons.put(selectedGene.getFrom(), bestParent.getNeurons().get(selectedGene.getFrom()));
+				else
+					babyNeurons.put(selectedGene.getFrom(), worstParent.getNeurons().get(selectedGene.getFrom()));
+				
+			}
+			if(!babyNeurons.containsKey(selectedGene.getTo())){
+				
+				if(bestParent.getNeurons().containsKey(selectedGene.getTo()))
+					babyNeurons.put(selectedGene.getTo(), bestParent.getNeurons().get(selectedGene.getTo()));
+				else
+					babyNeurons.put(selectedGene.getTo(), worstParent.getNeurons().get(selectedGene.getTo()));
+				
+			}
+			
+		}
+		
+		return new Genome(id, babyNeurons, babyLinks, bestParent.getNumInputs(), bestParent.getNumOutputs());
 		
 	}
 	

@@ -34,23 +34,33 @@ public class Test {
 		for(int i = 0; i < 10; i++)
 			genome.addNeuron(1.0, innovations, 10);
 		
-		//for(int i = 0; i < 40; i++)
-		//	genome2.addLink(1.0, 0.5, innovations, 10, 10);
-		//for(int i = 0; i < 10; i++)
-		//	genome2.addNeuron(1.0, innovations, 10);
+		for(int i = 0; i < 40; i++)
+			genome2.addLink(1.0, 0.5, innovations, 10, 10);
+		for(int i = 0; i < 10; i++)
+			genome2.addNeuron(1.0, innovations, 10);
 		
-		//for(int i = 0; i < 10; i++)
-		//	genome.addLink(1.0, 0.5, innovations, 10, 10);
-		//for(int i = 0; i < 10; i++)
-		//	genome.addNeuron(1.0, innovations, 10);
+		for(int i = 0; i < 10; i++)
+			genome.addLink(1.0, 0.5, innovations, 10, 10);
+		for(int i = 0; i < 10; i++)
+			genome.addNeuron(1.0, innovations, 10);
 		
 		LinkGene[] blah = genome.getLinks().values().toArray(new LinkGene[0]);
-		for(int i = 0; i < blah.length; i++)
-			System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
-		
+		//for(int i = 0; i < blah.length; i++)
+		//	System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
+		System.out.println();
 		NeuronGene[] blah2 = genome.getNeurons().values().toArray(new NeuronGene[0]);
 		for(int i = 0; i < blah2.length; i++)
 			System.out.println(blah2[i].getID() + ": " + blah2[i].getFrom() + " to " + blah2[i].getTo() + " @ " + blah2[i].getTier());
+		System.out.println();
+		
+		blah = genome2.getLinks().values().toArray(new LinkGene[0]);
+		//for(int i = 0; i < blah.length; i++)
+		//	System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
+		System.out.println();
+		blah2 = genome2.getNeurons().values().toArray(new NeuronGene[0]);
+		for(int i = 0; i < blah2.length; i++)
+			System.out.println(blah2[i].getID() + ": " + blah2[i].getFrom() + " to " + blah2[i].getTo() + " @ " + blah2[i].getTier());
+		System.out.println();
 		
 	}
 	
