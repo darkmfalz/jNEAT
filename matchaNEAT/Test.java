@@ -45,17 +45,28 @@ public class Test {
 			genome.addNeuron(1.0, innovations, 10);
 		
 		LinkGene[] blah = genome.getLinks().values().toArray(new LinkGene[0]);
-		//for(int i = 0; i < blah.length; i++)
-		//	System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
+		for(int i = 0; i < blah.length; i++)
+			System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
 		System.out.println();
 		NeuronGene[] blah2 = genome.getNeurons().values().toArray(new NeuronGene[0]);
 		for(int i = 0; i < blah2.length; i++)
 			System.out.println(blah2[i].getID() + ": " + blah2[i].getFrom() + " to " + blah2[i].getTo() + " @ " + blah2[i].getTier());
 		System.out.println();
 		
+		System.out.println(genome.getDistance(genome2));
+		genome2 = Genome.breedChild(genome, genome2.clone(), 1);
+		System.out.println(genome.getDistance(genome2));
+		genome2 = Genome.breedChild(genome, genome2.clone(), 1);
+		System.out.println(genome.getDistance(genome2));
+		genome2 = Genome.breedChild(genome, genome2.clone(), 1);
+		System.out.println(genome.getDistance(genome2));
+		genome2 = Genome.breedChild(genome, genome2.clone(), 1);
+		System.out.println(genome.getDistance(genome2));
+		
+		System.out.println();
 		blah = genome2.getLinks().values().toArray(new LinkGene[0]);
-		//for(int i = 0; i < blah.length; i++)
-		//	System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
+		for(int i = 0; i < blah.length; i++)
+			System.out.println(blah[i].getGeneNum() + ": " + blah[i].getFrom() + " to " + blah[i].getTo());
 		System.out.println();
 		blah2 = genome2.getNeurons().values().toArray(new NeuronGene[0]);
 		for(int i = 0; i < blah2.length; i++)

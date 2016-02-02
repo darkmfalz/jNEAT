@@ -1,6 +1,7 @@
 package matchaNEAT;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.PriorityQueue;
@@ -393,9 +394,90 @@ public class Genome {
 	}
 	
 	//Miscellaneous
-	public static double getDistance(Genome gen1, Genome gen2){
+	public double getDistance(Genome other){
 		
+		Comparator<LinkGene> geneNumComparator = new Comparator<LinkGene>(){
+			@Override
+			public int compare(LinkGene o1, LinkGene o2){
+				return Integer.compare(o1.getGeneNum(), o2.getGeneNum());
+				}
+			};
 		
+		LinkGene[] linksArr = links.values().toArray(new LinkGene[0]);
+		Arrays.sort(linksArr, geneNumComparator);
+		LinkGene[] otherLinksArr = other.getLinks().values().toArray(new LinkGene[0]);
+		Arrays.sort(otherLinksArr, geneNumComparator);
+		
+		double numExcess = 0.0;
+		double numMatched = 0.0;
+		double numDisjoint = 0.0;
+		double weightDifference = 0.0;
+		
+		int g1 = 0;
+		int g2 = 0;
+		
+		while(g1 < links.size() - 1 || g2 < other.getLinks().size() - 1){
+			
+			if(g1 == links.size() - 1){
+				
+				g2++;
+				numExcess++;
+				
+				continue;
+				
+			}
+			
+			if(g2 == other.getLinks().size() - 1){
+				
+				g1++;
+				numExcess++;
+				
+				continue;
+				
+			}
+			
+			int id1 = linksArr[g1].getGeneNum();
+			int id2 = otherLinksArr[g2].getGeneNum();
+			
+			if(id1 == id2){
+				
+				weightDifference += Math.abs(linksArr[g1].getWeight() - otherLinksArr[g2].getWeight());
+				
+				g1++;
+				g2++;
+				numMatched++;
+				
+			}
+			
+			if(id1 < id2){
+				
+				numDisjoint++;
+				g1++;
+				
+			}
+			
+			if(id1 > id2){
+				
+				numDisjoint++;
+				g2++;
+				
+			}
+			
+		}
+		
+		double longest = Math.max((double) links.size(), (double) other.getLinks().size());
+		
+		double cDisjoint = 1.0;
+		double cExcess = 1.0;
+		double cMatched = 0.4;
+		double score;
+		
+		if(numMatched > 0)
+			score = (cExcess * numExcess / longest) + (cDisjoint * numDisjoint / longest) + (cMatched * weightDifference / numMatched);
+		else
+			score = (cExcess * numExcess / longest) + (cDisjoint * numDisjoint / longest) + (cMatched * 2.0);
+		
+		return score;
 		
 	}
 	
@@ -458,8 +540,17 @@ public class Genome {
 		HashMap<Integer, NeuronGene> babyNeurons = new HashMap<Integer, NeuronGene>();
 		HashMap<Integer, LinkGene> babyLinks = new HashMap<Integer, LinkGene>();
 		
+		Comparator<LinkGene> geneNumComparator = new Comparator<LinkGene>(){
+			@Override
+			public int compare(LinkGene o1, LinkGene o2){
+				return Integer.compare(o1.getGeneNum(), o2.getGeneNum());
+				}
+			};
+		
 		LinkGene[] bestLinks = bestParent.getLinks().values().toArray(new LinkGene[0]);
+		Arrays.sort(bestLinks, geneNumComparator);
 		LinkGene[] worstLinks = worstParent.getLinks().values().toArray(new LinkGene[0]);
+		Arrays.sort(worstLinks, geneNumComparator);
 		
 		LinkGene selectedGene = null;
 		
@@ -472,13 +563,13 @@ public class Genome {
 				j++;
 			else if(i < bestLinks.length && j == worstLinks.length){
 				
-				selectedGene = bestLinks[i];
+				selectedGene = bestLinks[i].clone();
 				i++;
 				
 			}
 			else if(bestLinks[i].getGeneNum() < worstLinks[j].getGeneNum()){
 				
-				selectedGene = bestLinks[i];
+				selectedGene = bestLinks[i].clone();
 				i++;
 				
 			}
@@ -487,35 +578,39 @@ public class Genome {
 			else if(bestLinks[i].getGeneNum() == worstLinks[j].getGeneNum()){
 				
 				if(random.nextDouble() <= 0.5)
-					selectedGene = bestLinks[i];
+					selectedGene = bestLinks[i].clone();
 				else
-					selectedGene = worstLinks[j];
+					selectedGene = worstLinks[j].clone();
 				
 				i++;
 				j++;
 				
 			}
 			
-			if(babyLinks.size() == 0)
-				babyLinks.put(selectedGene.getGeneNum(), selectedGene);
-			else
-				if(!babyLinks.containsKey(selectedGene.getGeneNum()))
+			if(selectedGene != null){
+				
+				if(babyLinks.size() == 0)
 					babyLinks.put(selectedGene.getGeneNum(), selectedGene);
-			
-			if(!babyNeurons.containsKey(selectedGene.getFrom())){
-				
-				if(bestParent.getNeurons().containsKey(selectedGene.getFrom()))
-					babyNeurons.put(selectedGene.getFrom(), bestParent.getNeurons().get(selectedGene.getFrom()));
 				else
-					babyNeurons.put(selectedGene.getFrom(), worstParent.getNeurons().get(selectedGene.getFrom()));
+					if(!babyLinks.containsKey(selectedGene.getGeneNum()))
+						babyLinks.put(selectedGene.getGeneNum(), selectedGene);
 				
-			}
-			if(!babyNeurons.containsKey(selectedGene.getTo())){
-				
-				if(bestParent.getNeurons().containsKey(selectedGene.getTo()))
-					babyNeurons.put(selectedGene.getTo(), bestParent.getNeurons().get(selectedGene.getTo()));
-				else
-					babyNeurons.put(selectedGene.getTo(), worstParent.getNeurons().get(selectedGene.getTo()));
+				if(!babyNeurons.containsKey(selectedGene.getFrom())){
+					
+					if(bestParent.getNeurons().containsKey(selectedGene.getFrom()))
+						babyNeurons.put(selectedGene.getFrom(), bestParent.getNeurons().get(selectedGene.getFrom()));
+					else
+						babyNeurons.put(selectedGene.getFrom(), worstParent.getNeurons().get(selectedGene.getFrom()));
+					
+				}
+				if(!babyNeurons.containsKey(selectedGene.getTo())){
+					
+					if(bestParent.getNeurons().containsKey(selectedGene.getTo()))
+						babyNeurons.put(selectedGene.getTo(), bestParent.getNeurons().get(selectedGene.getTo()));
+					else
+						babyNeurons.put(selectedGene.getTo(), worstParent.getNeurons().get(selectedGene.getTo()));
+					
+				}
 				
 			}
 			
