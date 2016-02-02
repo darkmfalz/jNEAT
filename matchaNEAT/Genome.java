@@ -9,7 +9,8 @@ import java.util.Random;
 
 public class Genome {
 	
-	private int id, numInputs, numOutputs, species;
+	private int id, numInputs, numOutputs;
+	private Species species;
 	private HashMap<Integer, NeuronGene> neurons;
 	private HashMap<Integer, LinkGene> links;
 	private NeuralNet phenome;
@@ -26,7 +27,7 @@ public class Genome {
 		this.offspring = -1;
 		this.numInputs = numInputs;
 		this.numOutputs = numOutputs;
-		this.species = -1;
+		this.species = null;
 		
 	}
 
@@ -73,7 +74,7 @@ public class Genome {
 		
 	}
 	
-	public int getSpecies(){
+	public Species getSpecies(){
 		
 		return species;
 		
@@ -111,7 +112,7 @@ public class Genome {
 		
 	}
 	
-	public void setSpecies(int species){
+	public void setSpecies(Species species){
 		
 		this.species = species;
 		
