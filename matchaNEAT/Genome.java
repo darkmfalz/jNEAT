@@ -196,6 +196,65 @@ public class Genome {
 		
 	}
 	
+	public void addLinkFeedForward(double mutationRate, ArrayList<Gene> innovations, int numTriesToAddLink){
+		
+		Random random = new Random();
+		
+		if(random.nextDouble() > mutationRate)
+			return;
+		
+		NeuronGene[] neuronsArr = neurons.values().toArray(new NeuronGene[0]);
+		
+		NeuronGene neuron1 = null;
+		NeuronGene neuron2 = null;
+		
+		boolean recurrent = false;
+		
+		for(int i = 0; i < numTriesToAddLink; i++){
+			
+			neuron1 = neuronsArr[random.nextInt(neuronsArr.length)];
+			neuron2 = neuronsArr[random.nextInt(neuronsArr.length)];
+			
+			if(neuron1.getTier() > neuron2.getTier()){
+				
+				NeuronGene temp = neuron1;
+				neuron1 = neuron2;
+				neuron2 = temp;
+				
+			}
+			
+			if(!(isDuplicateLink(neuron1.getID(), neuron2.getID()) || neuron1.getID() == neuron2.getID() || neuron1.getTier() >= neuron2.getTier()))
+				break;
+			else{
+				
+				neuron1 = null;
+				neuron2 = null;
+				
+			}
+			
+		}
+		
+		if(neuron1 == null || neuron2 == null)
+			return;
+		
+		int id = checkInnovation(innovations, neuron1.getID(), neuron2.getID(), true);
+		
+		if(id < 0){
+			
+			LinkGene newLink = new LinkGene(innovations.size(), neuron1.getID(), neuron2.getID(), random.nextDouble()*2.0 - 1.0, recurrent);
+			links.put(newLink.getGeneNum(), newLink);
+			innovations.add(newLink);
+			
+		}
+		else{
+			
+			LinkGene newLink = new LinkGene(id, neuron1.getID(), neuron2.getID(), random.nextDouble()*2.0 - 1.0, recurrent);
+			links.put(newLink.getGeneNum(), newLink);
+			
+		}
+		
+	}
+	
 	public boolean isDuplicateLink(int id1, int id2){
 		
 		LinkGene[] linksArr = links.values().toArray(new LinkGene[0]);

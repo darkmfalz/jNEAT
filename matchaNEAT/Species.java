@@ -18,12 +18,24 @@ public class Species {
 		this.leader = leader;
 		members.put(leader.getID(), leader);
 		this.speciesID = speciesID;
-		bestFitness = 0.0;
-		avgFitness = 0.0;
+		bestFitness = leader.getFitness();
+		avgFitness = leader.getFitness();
 		generationsNoImprovement = 0;
 		age = 0;
 		numOffspring = 0.0;
 		
+	}
+	
+	public Species(Genome leader, HashMap<Integer, Genome> members, int speciesID, double bestFitness, double avgFitness, int generationsNoImprovement, int age, double numOffspring){
+			
+		this.leader = leader;
+		this.members = new HashMap<Integer, Genome>(members);
+		this.speciesID = speciesID;
+		this.bestFitness = bestFitness;
+		this.avgFitness = avgFitness;
+		this.generationsNoImprovement = generationsNoImprovement;
+		this.age = age;
+		this.numOffspring = numOffspring;
 	}
 	
 	//Getters
@@ -81,6 +93,26 @@ public class Species {
 		
 	}
 	
+	//Setters
+	public void setGenerationsNoImprovement(int generationsNoImprovement){
+		
+		this.generationsNoImprovement = generationsNoImprovement;
+		
+	}
+	
+	public void incGenerationsNoImprovement(){
+		
+		generationsNoImprovement++;
+		
+	}
+	
+	public void setAge(int age){
+		
+		this.age = age;
+		
+	}
+	
+	//Miscellaneous
 	public void adjustFitness(int youngAgeThreshold, int youngAgeBonus, int oldAgeThreshold, int oldAgePenalty){
 		
 		Genome[] membersArr = members.values().toArray(new Genome[0]);
@@ -102,8 +134,10 @@ public class Species {
 	
 	public void addMember(Genome newMember){
 		
+		newMember.setSpecies(this);
 		members.put(newMember.getID(), newMember);
 		avgFitness = (members.size() - 1)/members.size()*avgFitness + newMember.getFitness();
+		bestFitness = Math.max(newMember.getFitness(), bestFitness);
 		
 	}
 	
@@ -119,4 +153,14 @@ public class Species {
 		
 	}
 
+	public Species nextGeneration(Genome leader){
+		
+		Species nextGeneration = new Species(leader, speciesID);
+		nextGeneration.setGenerationsNoImprovement(this.getGenerationsNoImprovement() + 1);
+		nextGeneration.setAge(this.getAge() + 1);
+		
+		return nextGeneration;
+		
+	}
+	
 }
