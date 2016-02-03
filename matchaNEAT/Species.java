@@ -1,6 +1,8 @@
 package matchaNEAT;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 
 public class Species {
 	
@@ -137,6 +139,8 @@ public class Species {
 		newMember.setSpecies(this);
 		members.put(newMember.getID(), newMember);
 		avgFitness = (members.size() - 1)/members.size()*avgFitness + newMember.getFitness();
+		if(newMember.getFitness() > bestFitness)
+			leader = newMember;
 		bestFitness = Math.max(newMember.getFitness(), bestFitness);
 		
 	}
@@ -156,10 +160,48 @@ public class Species {
 	public Species nextGeneration(Genome leader){
 		
 		Species nextGeneration = new Species(leader, speciesID);
-		nextGeneration.setGenerationsNoImprovement(this.getGenerationsNoImprovement() + 1);
+		nextGeneration.setGenerationsNoImprovement(this.getGenerationsNoImprovement());
 		nextGeneration.setAge(this.getAge() + 1);
 		
 		return nextGeneration;
+		
+	}
+	
+	public PriorityQueue<Genome> sortSpeciesFitness(){
+		
+		Comparator<Genome> fitnessComparator = new Comparator<Genome>(){
+			@Override
+			public int compare(Genome o1, Genome o2){
+				return -1*Double.compare(o1.getFitness(), o2.getFitness());
+				}
+			};
+			
+		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(fitnessComparator);
+		
+		Genome[] values = members.values().toArray(new Genome[0]);
+		for(int i = 0; i < values.length; i++)
+			queue.add(values[i]);
+		
+		return queue;
+		
+	}
+	
+	public PriorityQueue<Genome> sortSpeciesSharedFitness(){
+		
+		Comparator<Genome> sharedFitnessComparator = new Comparator<Genome>(){
+			@Override
+			public int compare(Genome o1, Genome o2){
+				return -1*Double.compare(o1.getSharedFitness(), o2.getSharedFitness());
+				}
+			};
+			
+		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(sharedFitnessComparator);
+		
+		Genome[] values = members.values().toArray(new Genome[0]);
+		for(int i = 0; i < values.length; i++)
+			queue.add(values[i]);
+		
+		return queue;
 		
 	}
 	

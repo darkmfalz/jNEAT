@@ -2,6 +2,7 @@ package matchaNEAT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 public class Breeder {
@@ -11,7 +12,11 @@ public class Breeder {
 	private boolean feedForward;
 	private ArrayList<Genome> population;
 	private ArrayList<Gene> innovations;
+	private HashMap<Integer, Species> species;
+	private int numSpecies;
 	private Fitness fitness;
+	private double adoptionRate;
+	private int expSpeciesSize = 20;
 	
 	public Breeder(int populationSize, int numInputs, int numOutputs, boolean feedForward, Fitness fitness){
 		
@@ -21,6 +26,30 @@ public class Breeder {
 		this.fitness = fitness;
 		population = new ArrayList<Genome>(populationSize);
 		innovations = new ArrayList<Gene>();
+		species = new HashMap<Integer, Species>();
+		numSpecies = 0;
+		adoptionRate = -1.0;
+		
+		for(int i = 0; i < numInputs; i++)
+			innovations.add(new NeuronGene(innovations.size(), -1, -1, innovations.size(), NeuronGene.NeuronType.INPUT, 0.0, 1.0, false));
+		for(int i = 0; i < numOutputs; i++)
+			innovations.add(new NeuronGene(innovations.size(), -1, -1, innovations.size(), NeuronGene.NeuronType.OUTPUT, Double.MAX_VALUE, 1.0, false));
+		
+		breedFirstGeneration(populationSize);
+		
+	}
+	
+	public Breeder(int populationSize, int numInputs, int numOutputs, boolean feedForward, Fitness fitness, double adoptionRate){
+		
+		this.numInputs = numInputs;
+		this.numOutputs = numOutputs;
+		this.feedForward = feedForward;
+		this.fitness = fitness;
+		population = new ArrayList<Genome>(populationSize);
+		innovations = new ArrayList<Gene>();
+		species = new HashMap<Integer, Species>();
+		numSpecies = 0;
+		adoptionRate = Math.min(Math.max(adoptionRate, 0.0), 1.0);
 		
 		for(int i = 0; i < numInputs; i++)
 			innovations.add(new NeuronGene(i + innovations.size(), -1, -1, i + innovations.size(), NeuronGene.NeuronType.INPUT, 0.0, 1.0, false));
@@ -66,10 +95,85 @@ public class Breeder {
 			
 		}
 		
-		
+		fitness();
+		speciateFirstGen();
 		
 	}
 	
-	private void
+	private void fitness(){
+		
+		for(int i = 0; i < population.size(); i++)
+			population.get(i).setFitness(fitness.fitnessFunction(population.get(i).getPhenome()));
+		
+	}
 
+	private void speciateFirstGen(){
+		
+		double delta = 0.0;
+		PriorityQueue<Double> distances = new PriorityQueue<Double>();
+		for(int i = 0; i < population.size(); i++){
+			
+			PriorityQueue<Double> queue = new PriorityQueue<Double>();
+			
+			for(int j = 0; j < population.size(); j++)
+				queue.add(population.get(i).getDistance(population.get(j)));
+			
+			for(int j = 0; j < population.size(); j++)
+				if(j == expSpeciesSize){
+					
+					distances.add(queue.poll());
+					break;
+					
+				}
+				else
+					queue.poll();
+			
+		}
+		for(int i = 0; i < population.size(); i++)
+			if(i == population.size()/2)
+				delta = distances.poll();
+			else
+				distances.poll();
+		
+		species.put(0, new Species(population.get(0), 0));
+		numSpecies++;
+		
+		for(int i = 1; i < population.size(); i++){
+			
+			Species[] values = species.values().toArray(new Species[0]);
+			shuffleArray(values);
+			for(int j = 0; j < values.length; j++)
+				if(values[j].getLeader().getDistance(population.get(i)) < delta){
+					
+					values[j].addMember(population.get(i));
+					break;
+					
+				}
+				else if(j >= values.length - 1){
+					
+					species.put(numSpecies, new Species(population.get(i), numSpecies));
+					numSpecies++;
+					break;
+					
+				}
+			
+		}
+		
+	}
+	
+	public static <T> void shuffleArray(T[] array){
+		
+		Random random = new Random();
+		for (int i = array.length - 1; i > 0; i--){
+			
+	    	int index = random.nextInt(i + 1);
+	    	// Simple swap
+	    	T a = array[index];
+	    	array[index] = array[i];
+	    	array[i] = a;
+	    	
+		}
+		
+	}
+	
 }

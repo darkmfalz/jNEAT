@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.PriorityQueue;
 import java.util.Random;
 
 public class Genome {
@@ -21,7 +20,7 @@ public class Genome {
 		this.id = id;
 		this.neurons = neurons;
 		this.links = links;
-		this.phenome = new NeuralNet(neurons, links);
+		this.phenome = new NeuralNet(neurons, links, numInputs, numOutputs);
 		this.fitness = 0;
 		this.sharedFitness = 0;
 		this.offspring = -1;
@@ -677,44 +676,6 @@ public class Genome {
 		}
 		
 		return new Genome(id, babyNeurons, babyLinks, bestParent.getNumInputs(), bestParent.getNumOutputs());
-		
-	}
-	
-	public static PriorityQueue<Genome> sortGenesFitness(HashMap<Integer, Genome> genomes){
-		
-		Comparator<Genome> fitnessComparator = new Comparator<Genome>(){
-			@Override
-			public int compare(Genome o1, Genome o2){
-				return -1*Double.compare(o1.getFitness(), o2.getFitness());
-				}
-			};
-			
-		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(fitnessComparator);
-		
-		Genome[] values = genomes.values().toArray(new Genome[0]);
-		for(int i = 0; i < values.length; i++)
-			queue.add(values[i]);
-		
-		return queue;
-		
-	}
-	
-	public static PriorityQueue<Genome> sortGenesSharedFitness(HashMap<Integer, Genome> genomes){
-		
-		Comparator<Genome> sharedFitnessComparator = new Comparator<Genome>(){
-			@Override
-			public int compare(Genome o1, Genome o2){
-				return -1*Double.compare(o1.getSharedFitness(), o2.getSharedFitness());
-				}
-			};
-			
-		PriorityQueue<Genome> queue = new PriorityQueue<Genome>(sharedFitnessComparator);
-		
-		Genome[] values = genomes.values().toArray(new Genome[0]);
-		for(int i = 0; i < values.length; i++)
-			queue.add(values[i]);
-		
-		return queue;
 		
 	}
 	
