@@ -117,6 +117,12 @@ public class Genome {
 		
 	}
 
+	public void updatePhenome(){
+		
+		phenome = new NeuralNet(neurons, links, numInputs, numOutputs);
+		
+	}
+	
 	//Mutators
 	public void addLink(double mutationRate, double chanceOfLooped, ArrayList<Gene> innovations, int numTriesToFindLoop, int numTriesToAddLink){
 		
@@ -158,7 +164,7 @@ public class Genome {
 				neuron1 = neuronsArr[random.nextInt(neuronsArr.length)];
 				neuron2 = neuronsArr[random.nextInt(neuronsArr.length)];
 				
-				if(!(isDuplicateLink(neuron1.getID(), neuron2.getID()) || neuron1.getID() == neuron2.getID()))
+				if(!(isDuplicateLink(neuron1.getID(), neuron2.getID()) || neuron1.getID() == neuron2.getID() || neuron2.getType() == NeuronGene.NeuronType.INPUT))
 					break;
 				else{
 					
@@ -528,7 +534,7 @@ public class Genome {
 		
 		double cDisjoint = 1.0;
 		double cExcess = 1.0;
-		double cMatched = 0.4;
+		double cMatched = 0.2;
 		double score;
 		
 		if(numMatched > 0)

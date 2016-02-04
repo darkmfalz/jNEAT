@@ -7,8 +7,38 @@ public class Test {
 
 	public static void main(String[] args){
 		
+		Fitness fitness = new Fitness(){
+			@Override
+			public double fitnessFunction(NeuralNet brain) {
+				
+				double score = 0.0;
+				
+				for(double i = 0.0; i <= 1.0; i++)
+					for(double j = 0.0; j <= 1.0; j++){
+						
+						double[] inputs = {i, j};
+						double[] outputs = brain.output(inputs, true);
+						double correctResponse;
+						if(i == 0.0 && j == 0.0)
+							correctResponse = 0.0;
+						else if(i == 0.0 && j == 1.0)
+							correctResponse = 1.0;
+						else if(i == 1.0 && j == 0.0)
+							correctResponse = 1.0;
+						else
+							correctResponse = 0.0;
+						
+						score += 1.0 - Math.abs(outputs[0] - correctResponse);
+						
+					}
+				
+				return score;
+				
+			}
+		};
+		Breeder breeder = new Breeder(100, 2, 1, true, fitness);
 		
-		NeuronGene neuronGene0 = new NeuronGene(0, -1, -1, 0, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
+		/*NeuronGene neuronGene0 = new NeuronGene(0, -1, -1, 0, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
 		NeuronGene neuronGene1 = new NeuronGene(1, -1, -1, 1, NeuronGene.NeuronType.INPUT, 0.0, 1.0, false);
 		NeuronGene neuronGene2 = new NeuronGene(2, -1, -1, 2, NeuronGene.NeuronType.OUTPUT, 1.0, 1.0, false);
 		NeuronGene neuronGene3 = new NeuronGene(3, -1, -1, 3, NeuronGene.NeuronType.OUTPUT, 1.0, 1.0, false);
@@ -71,7 +101,7 @@ public class Test {
 		blah2 = genome2.getNeurons().values().toArray(new NeuronGene[0]);
 		for(int i = 0; i < blah2.length; i++)
 			System.out.println(blah2[i].getID() + ": " + blah2[i].getFrom() + " to " + blah2[i].getTo() + " @ " + blah2[i].getTier());
-		System.out.println();
+		System.out.println();*/
 		
 	}
 	

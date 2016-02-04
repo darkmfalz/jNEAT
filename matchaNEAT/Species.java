@@ -18,6 +18,7 @@ public class Species {
 	public Species(Genome leader, int speciesID){
 		
 		this.leader = leader;
+		members = new HashMap<Integer, Genome>();
 		members.put(leader.getID(), leader);
 		this.speciesID = speciesID;
 		bestFitness = leader.getFitness();
@@ -115,7 +116,7 @@ public class Species {
 	}
 	
 	//Miscellaneous
-	public void adjustFitness(int youngAgeThreshold, int youngAgeBonus, int oldAgeThreshold, int oldAgePenalty){
+	public void adjustFitness(int youngAgeThreshold, double youngAgeBonus, int oldAgeThreshold, double oldAgePenalty){
 		
 		Genome[] membersArr = members.values().toArray(new Genome[0]);
 		
@@ -130,6 +131,8 @@ public class Species {
 			
 			membersArr[gen].setSharedFitness(fitness, members.size());
 			
+			avgFitness += (fitness/members.size())/members.size();
+			
 		}
 		
 	}
@@ -138,7 +141,6 @@ public class Species {
 		
 		newMember.setSpecies(this);
 		members.put(newMember.getID(), newMember);
-		avgFitness = (members.size() - 1)/members.size()*avgFitness + newMember.getFitness();
 		if(newMember.getFitness() > bestFitness)
 			leader = newMember;
 		bestFitness = Math.max(newMember.getFitness(), bestFitness);

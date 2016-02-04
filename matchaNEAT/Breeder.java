@@ -1,6 +1,7 @@
 package matchaNEAT;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -15,6 +16,7 @@ public class Breeder {
 	private HashMap<Integer, Species> species;
 	private int numSpecies;
 	private Fitness fitness;
+	private double avgFitness;
 	private double adoptionRate;
 	private int expSpeciesSize = 20;
 	
@@ -24,6 +26,7 @@ public class Breeder {
 		this.numOutputs = numOutputs;
 		this.feedForward = feedForward;
 		this.fitness = fitness;
+		avgFitness = 0.0;
 		population = new ArrayList<Genome>(populationSize);
 		innovations = new ArrayList<Gene>();
 		species = new HashMap<Integer, Species>();
@@ -35,7 +38,7 @@ public class Breeder {
 		for(int i = 0; i < numOutputs; i++)
 			innovations.add(new NeuronGene(innovations.size(), -1, -1, innovations.size(), NeuronGene.NeuronType.OUTPUT, Double.MAX_VALUE, 1.0, false));
 		
-		breedFirstGeneration(populationSize);
+		breedFirstGen(populationSize);
 		
 	}
 	
@@ -45,6 +48,7 @@ public class Breeder {
 		this.numOutputs = numOutputs;
 		this.feedForward = feedForward;
 		this.fitness = fitness;
+		avgFitness = 0.0;
 		population = new ArrayList<Genome>(populationSize);
 		innovations = new ArrayList<Gene>();
 		species = new HashMap<Integer, Species>();
@@ -56,11 +60,11 @@ public class Breeder {
 		for(int i = 0; i < numOutputs; i++)
 			innovations.add(new NeuronGene(i + innovations.size(), -1, -1, i + innovations.size(), NeuronGene.NeuronType.OUTPUT, Double.MAX_VALUE, 1.0, false));
 		
-		breedFirstGeneration(populationSize);
+		breedFirstGen(populationSize);
 		
 	}
 	
-	private void breedFirstGeneration(int populationSize){
+	private void breedFirstGen(int populationSize){
 		
 		Random random = new Random();
 		
@@ -87,9 +91,9 @@ public class Breeder {
 			
 			for(int j = 0; j < numLinks; j++)
 				if(feedForward)
-					newGenome.addLinkFeedForward(1.0, innovations, numInputs*numOutputs);
+					newGenome.addLinkFeedForward(1.0, innovations, 10*numInputs);
 				else
-					newGenome.addLink(1.0, 0.0, innovations, 0, numInputs*numOutputs);
+					newGenome.addLink(1.0, 0.0, innovations, 0, 10*numInputs);
 			
 			population.add(newGenome);
 			
@@ -98,19 +102,16 @@ public class Breeder {
 		fitness();
 		speciateFirstGen();
 		
+		System.out.println("Species: " + numSpecies);
+		System.out.println("");
+		
 	}
 	
-	private void fitness(){
-		
-		for(int i = 0; i < population.size(); i++)
-			population.get(i).setFitness(fitness.fitnessFunction(population.get(i).getPhenome()));
-		
-	}
-
 	private void speciateFirstGen(){
 		
+		//Select Delta
 		double delta = 0.0;
-		PriorityQueue<Double> distances = new PriorityQueue<Double>();
+		PriorityQueue<Double> distances = new PriorityQueue<Double>(Collections.reverseOrder());
 		for(int i = 0; i < population.size(); i++){
 			
 			PriorityQueue<Double> queue = new PriorityQueue<Double>();
@@ -120,7 +121,7 @@ public class Breeder {
 			
 			for(int j = 0; j < population.size(); j++)
 				if(j == expSpeciesSize){
-					
+
 					distances.add(queue.poll());
 					break;
 					
@@ -130,11 +131,12 @@ public class Breeder {
 			
 		}
 		for(int i = 0; i < population.size(); i++)
-			if(i == population.size()/2)
+			if(i == population.size()/32)
 				delta = distances.poll();
 			else
 				distances.poll();
-		
+
+		//Speciate appropriately
 		species.put(0, new Species(population.get(0), 0));
 		numSpecies++;
 		
@@ -159,8 +161,35 @@ public class Breeder {
 			
 		}
 		
+		Species[] values = species.values().toArray(new Species[0]);
+		for(int i = 0; i < values.length; i++){
+			
+			values[i].adjustFitness(-1, 1.0, -1, 1.0);
+			avgFitness += ((double) values[i].getNumMembers())/((double) population.size())*values[i].getAverageFitness();
+			
+		}
+		for(int i = 0; i < values.length; i++){
+			
+			values[i].calculateOffspringNum(avgFitness);
+			System.out.println("Species: " + values[i].getID() + ", NumMembers: " + values[i].getNumMembers() + ", NumOffspring: " + values[i].getNumOffspring() + ", AvgFitness: " + values[i].getAverageFitness());
+			
+		}
+		
+		System.out.println("Delta: " + delta);
+		
 	}
 	
+	private void fitness(){
+		
+		for(int i = 0; i < population.size(); i++){
+			
+			population.get(i).updatePhenome();
+			population.get(i).setFitness(fitness.fitnessFunction(population.get(i).getPhenome()));
+			
+		}
+		
+	}
+
 	public static <T> void shuffleArray(T[] array){
 		
 		Random random = new Random();
